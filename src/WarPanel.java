@@ -1,8 +1,9 @@
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+
 import javax.swing.*;
+
 import java.util.*;
 import java.net.*;
 import java.io.*;
@@ -15,6 +16,8 @@ import java.io.*;
  */
 
 public class WarPanel extends JPanel implements Runnable {
+	static boolean debug = true;
+	static boolean normal = true;
 
   Thread anim = null;  // animation thread
 
@@ -46,14 +49,15 @@ public class WarPanel extends JPanel implements Runnable {
 
 	private static final int PORT = 1234;     // server details
 	private static final String HOST = "localhost";
-
+	
 
   public WarPanel() {
 	super();
 	setPreferredSize(new Dimension(PWIDTH, PHEIGHT));
 
-	redtank = new ImageIcon("redtank.png").getImage();
-	bluetank = new ImageIcon("bluetank.png").getImage();
+	redtank = new ImageIcon(getClass().getResource("redtank.png")).getImage();//ImageIcon("redtank.png").getImage();
+	
+	bluetank = new ImageIcon(getClass().getResource("bluetank.png")).getImage();//ImageIcon("bluetank.png").getImage();
 	addKeyListener(new KeyL());
 	addMouseListener(new MseL());
 
@@ -72,7 +76,8 @@ public class WarPanel extends JPanel implements Runnable {
         new NetWarWatcher(this, in).start();    // start watching for server msgs
       }
       catch(Exception e)
-      {  // System.out.println(e);
+      {  // 
+    	  System.out.println(e);
          System.out.println("Cannot contact the NetTankWar Server");
          System.exit(0);
       }
@@ -274,6 +279,24 @@ public class WarPanel extends JPanel implements Runnable {
   public void stop() {
     anim = null;  // stop animation thread
   }
+  
+  public static void print(String s, String mode) {
+		if (mode == "normal" || mode == "debug" || 
+				mode == "turnin" || mode == "error") {
+			if (mode == "normal" && normal) {
+				System.out.println(s);
+			} else if (mode == "debug" && debug) {
+				System.out.println(s);
+			} else if (mode == "turnin") {
+				System.out.println(s);
+			}else if (mode == "error"){
+				System.out.println("Error: "+s);
+			}
+		} else {
+			print("Mode \""+mode + "\" doesn't exist. Msg:\n" + s,"error");
+		}
+
+	}
 
   class KeyL extends KeyAdapter {
 	  public void keyPressed(KeyEvent e){
@@ -286,6 +309,7 @@ public class WarPanel extends JPanel implements Runnable {
 			  case KeyEvent.VK_UP: tanks.get(playerID).forth = true;
 								break;
 			  case KeyEvent.VK_SPACE: tanks.get(playerID).fire = true;
+//			  						  tanks.get(1-playerID).fire = true;
 					break;
 		  }
 	  }
@@ -300,6 +324,7 @@ public class WarPanel extends JPanel implements Runnable {
 			  case KeyEvent.VK_UP: tanks.get(playerID).forth = false;
 								break;
 			  case KeyEvent.VK_SPACE: tanks.get(playerID).fire = false;
+//			  						  tanks.get(1-playerID).fire = false;
 								break;
 		  }
 	  }
@@ -373,7 +398,7 @@ class Tank implements Ball {
 	double locX, locY, radius, angle;
 	int self; // index of this tank in WarPanel.tanks
 	public boolean turnL, turnR, forth, back, fire;
-	boolean prevtL, prevtR, prevfo;
+	boolean prevtL, prevtR, prevfo, prevFire;
 	Color color;
 	Image image;
 
@@ -429,8 +454,13 @@ class Tank implements Ball {
 			  WarPanel.send("forth "+forth+" "+locX+" "+locY+" "+angle);
 			  prevfo = forth;
 			}
+			if(fire != prevFire){
+				WarPanel.send("fire "+fire+" "+locX+" "+locY+" "+angle);
+				prevFire = fire;
+			}
 		}
 		if (fire){
+//			WarPanel.send("fire: "+fire);
 			fireBullet();
 		}
 		// Update all of our bullets
@@ -444,14 +474,23 @@ class Tank implements Ball {
 		// Get the flag change
 		String command = sc.next();
 		boolean value = sc.nextBoolean();
-		if (command.equals("turnL"))
+		if (command.equals("turnL")){
 			turnL = value;
-		else if (command.equals("turnR"))
+			System.out.println("turnLing");
+		}else if (command.equals("turnR")){
 			turnR = value;
-		else if (command.equals("forth"))
+			System.out.println("turnRing");
+		}else if (command.equals("forth")){
 			forth = value;
-		else
+			System.out.println("Forthing");
+		}else if (command.equals("fire")){
+			System.out.println("Firing");
+			fire = value;
+//		else if (command.equals("forth"))
+//			forth = value;
+		}else{
 			System.out.println("Unexpected move: "+command);
+		}
 		// then unpack position update
 		locX = sc.nextDouble();
 		locY = sc.nextDouble();

@@ -1,4 +1,3 @@
-
 // NetWarWatcher.java
 // written by mike slattery - mar 2007
 //
@@ -36,9 +35,7 @@ public class NetWarWatcher extends Thread
      in = i;
   }
 
-
-  public void run()
-  // Read server messages and act on them
+  public void run()// Read server messages and act on them
   {
     String line;
     try {
@@ -52,7 +49,7 @@ public class NetWarWatcher extends Thread
 		  ntw.setPlayerID(1);
           ntw.setRocks(line.substring(6));
 	    }
-        else if (line.startsWith("turn") || line.startsWith("forth"))
+        else if (line.startsWith("turn") || line.startsWith("forth") || line.startsWith("fire"))
           ntw.processMove(line);
         else   // anything else
           System.out.println("ERR: " + line + "\n");

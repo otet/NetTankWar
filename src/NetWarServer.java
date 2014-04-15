@@ -1,5 +1,4 @@
 
-
 // NetWarServer.java
 // Written by mike slattery - mar 2007
 // Based on FBFServer by
@@ -13,8 +12,8 @@
    on the client-side.
 */
 
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
+import java.io.*;
 
 
 public class NetWarServer
@@ -30,9 +29,7 @@ public class NetWarServer
   private int numPlayers;
 
 
-  public NetWarServer()
-  // Concurrently process players
-  {
+  public NetWarServer(){// Concurrently process players
     handlers = new PlayerServerHandler[MAX_PLAYERS];
     handlers[0] = null;
     handlers[1] = null;
@@ -57,21 +54,15 @@ public class NetWarServer
     {  System.out.println(e);  }
   }  // end of NetWarServer()
 
-
   // methods for child threads to access shared data structures
-
-  synchronized public void tellOther(int playerID, String msg)
-  // send mesg to the other player
-  { int otherID = 1 - playerID;
+  synchronized public void tellOther(int playerID, String msg){ // send mesg to the other player
+	  int otherID = 1 - playerID;
     handlers[otherID].sendMessage(msg);
   }  // end of tellOther()
 
-
-  // -----------------------------------
-
   public static void main(String args[])
   {  new NetWarServer();  }
-
 } // end of NetWarServer class
+
 
 
