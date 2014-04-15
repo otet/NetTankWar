@@ -1,7 +1,13 @@
+import java.applet.AudioClip;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 
 import java.util.*;
@@ -50,18 +56,74 @@ public class WarPanel extends JPanel implements Runnable {
 	private static final int PORT = 1234;     // server details
 	private static final String HOST = "localhost";
 	
+	  AudioFormat audioFormat;
+	  AudioInputStream audioInputStream;
+	  SourceDataLine sourceDataLine;
+	  boolean stopPlayback = false;
+  
+		public WarPanel() {
+			super();
+			setPreferredSize(new Dimension(PWIDTH, PHEIGHT));
 
-  public WarPanel() {
-	super();
-	setPreferredSize(new Dimension(PWIDTH, PHEIGHT));
+			redtank = new ImageIcon("redtank.png").getImage();
+			bluetank = new ImageIcon("bluetank.png").getImage();
+			
+			addKeyListener(new KeyL());
+			addMouseListener(new MseL());
 
-	redtank = new ImageIcon("redtank.png").getImage();
-	bluetank = new ImageIcon("bluetank.png").getImage();
-	addKeyListener(new KeyL());
-	addMouseListener(new MseL());
+			makeContact();
+		  }
+	  
+	  private void playBang() {
+	    try{
+		File bang = new File("bangwav.wav");
+		audioInputStream = AudioSystem.getAudioInputStream(bang);
+		audioFormat = audioInputStream.getFormat();
+		System.out.println(audioFormat);
+		DataLine.Info dataLineInfo =
+                new DataLine.Info(
+                  SourceDataLine.class,
+                          audioFormat);
+		sourceDataLine = (SourceDataLine)AudioSystem.getLine(dataLineInfo);
+		 new PlayThread().start();
+	    }catch (Exception e) {
+	      e.printStackTrace();
+	      System.exit(0);
+	    }//end catch
+	  }//end playAudio
+	
+	class PlayThread extends Thread{
+		  byte tempBuffer[] = new byte[10000];
 
-	makeContact();
-  }
+		  public void run(){
+		    try{
+		      sourceDataLine.open(audioFormat);
+		      sourceDataLine.start();
+		      int cnt;
+
+		      while((cnt = audioInputStream.read(
+		           tempBuffer,0,tempBuffer.length)) != -1
+		                       && stopPlayback == false){
+		        if(cnt > 0){
+		          sourceDataLine.write(tempBuffer, 0, cnt);
+		        }//end if
+		      }//end while loop
+		      
+		    //Block and wait for internal buffer of the
+		      // data line to empty.
+		      sourceDataLine.drain();
+		      sourceDataLine.close();
+
+		      //Prepare to playback another file
+		  
+		    }catch (Exception e) {
+		      e.printStackTrace();
+		      System.exit(0);
+		    }//end catch
+		  }//end run
+		}//end inner class PlayThread
+	   
+
 
     private void makeContact()
     // contact the NetWarServer
@@ -269,6 +331,7 @@ public class WarPanel extends JPanel implements Runnable {
 		}
       frameRender(offgr);
       repaint();
+      
       try {
       	Thread.sleep(40);
       } catch (InterruptedException e) {}
@@ -307,8 +370,9 @@ public class WarPanel extends JPanel implements Runnable {
 								break;
 			  case KeyEvent.VK_UP: tanks.get(playerID).forth = true;
 								break;
-			  case KeyEvent.VK_SPACE: tanks.get(playerID).fire = true;
-//			  						  tanks.get(1-playerID).fire = true;
+			  case KeyEvent.VK_SPACE: 
+				  tanks.get(playerID).fire = true;
+			  	  playBang();
 					break;
 		  }
 	  }
@@ -461,6 +525,7 @@ class Tank implements Ball {
 		if (fire){
 //			WarPanel.send("fire: "+fire);
 			fireBullet();
+			
 		}
 		// Update all of our bullets
 		for (Bullet b: bullets)
