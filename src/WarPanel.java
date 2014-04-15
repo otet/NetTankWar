@@ -55,9 +55,8 @@ public class WarPanel extends JPanel implements Runnable {
 	super();
 	setPreferredSize(new Dimension(PWIDTH, PHEIGHT));
 
-	redtank = new ImageIcon(getClass().getResource("redtank.png")).getImage();//ImageIcon("redtank.png").getImage();
-	
-	bluetank = new ImageIcon(getClass().getResource("bluetank.png")).getImage();//ImageIcon("bluetank.png").getImage();
+	redtank = new ImageIcon("redtank.png").getImage();
+	bluetank = new ImageIcon("bluetank.png").getImage();
 	addKeyListener(new KeyL());
 	addMouseListener(new MseL());
 
