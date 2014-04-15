@@ -74,24 +74,38 @@ public class WarPanel extends JPanel implements Runnable {
 			makeContact();
 		  }
 	  
+	//method for bullet firing sound effect
 	  private void playBang() {
 	    try{
 		File bang = new File("bangwav.wav");
 		audioInputStream = AudioSystem.getAudioInputStream(bang);
 		audioFormat = audioInputStream.getFormat();
 		System.out.println(audioFormat);
-		DataLine.Info dataLineInfo =
-                new DataLine.Info(
-                  SourceDataLine.class,
-                          audioFormat);
+		DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
 		sourceDataLine = (SourceDataLine)AudioSystem.getLine(dataLineInfo);
 		 new PlayThread().start();
 	    }catch (Exception e) {
 	      e.printStackTrace();
 	      System.exit(0);
-	    }//end catch
-	  }//end playAudio
+	    }
+	  }
 	
+	  private void playBackg() {
+		    try{
+			File backmusic = new File("link.mid");
+			audioInputStream = AudioSystem.getAudioInputStream(backmusic);
+			audioFormat = audioInputStream.getFormat();
+			System.out.println(audioFormat);
+			DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+			sourceDataLine = (SourceDataLine)AudioSystem.getLine(dataLineInfo);
+			 new PlayThread().start();
+			 
+		    }catch (Exception e) {
+		      e.printStackTrace();
+		      System.exit(0);
+		    }
+		  }
+	  
 	class PlayThread extends Thread{
 		  byte tempBuffer[] = new byte[10000];
 
@@ -101,27 +115,23 @@ public class WarPanel extends JPanel implements Runnable {
 		      sourceDataLine.start();
 		      int cnt;
 
-		      while((cnt = audioInputStream.read(
-		           tempBuffer,0,tempBuffer.length)) != -1
-		                       && stopPlayback == false){
+		      while((cnt = audioInputStream.read(tempBuffer,0,tempBuffer.length)) != -1 && stopPlayback == false){
 		        if(cnt > 0){
 		          sourceDataLine.write(tempBuffer, 0, cnt);
-		        }//end if
-		      }//end while loop
-		      
-		    //Block and wait for internal buffer of the
-		      // data line to empty.
+		        }
+		      }
+	
 		      sourceDataLine.drain();
 		      sourceDataLine.close();
-
-		      //Prepare to playback another file
-		  
+		      
+		      stopPlayback = false;
+	    	  
 		    }catch (Exception e) {
 		      e.printStackTrace();
 		      System.exit(0);
-		    }//end catch
-		  }//end run
-		}//end inner class PlayThread
+		    }
+		  }
+		}
 	   
 
 
@@ -331,7 +341,7 @@ public class WarPanel extends JPanel implements Runnable {
 		}
       frameRender(offgr);
       repaint();
-      
+   
       try {
       	Thread.sleep(40);
       } catch (InterruptedException e) {}
